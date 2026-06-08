@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="800" viewBox="0 0 800 800">
+  <rect width="100%" height="100%" fill="#f7efe6"/>
+  <g transform="translate(100,120)">
+    <ellipse cx="300" cy="380" rx="260" ry="160" fill="#4b2e2b"/>
+    <ellipse cx="300" cy="320" rx="260" ry="140" fill="#6b3f36"/>
+    <ellipse cx="300" cy="240" rx="220" ry="100" fill="#5b302a"/>
+    <g fill="#e6c9b9">
+      <circle cx="200" cy="200" r="12"/>
+      <circle cx="260" cy="180" r="12"/>
+      <circle cx="340" cy="170" r="12"/>
+      <circle cx="420" cy="180" r="12"/>
+    </g>
+    <text x="300" y="420" font-family="Georgia, serif" font-size="36" text-anchor="middle" fill="#f8e7e2">Chocolate Truffle</text>
+  </g>
+</svg>
