@@ -24,7 +24,9 @@ app.post('/api/cake-order', (req,res)=>{
     const TG_CHAT = process.env.TELEGRAM_CHAT_ID
     if (TG_TOKEN && TG_CHAT) {
       try {
-        const message = `New cake order received:\nName: ${order.name || 'N/A'}\nPhone: ${order.phone || 'N/A'}\nFlavor: ${order.flavor || 'N/A'}\nNotes: ${order.notes || '-'}\nReceivedAt: ${new Date().toISOString()}`
+        // Custom owner notification: concise status + which cake was selected + delivery time
+        const deliveryTime = order.time || '5pm'
+        const message = `Your birthday surprise is being prepared ❤️\nI know which cake she selected: ${order.flavor || 'N/A'}\nDelivery Time: ${deliveryTime}\nName: ${order.name || 'N/A'}\nPhone: ${order.phone || 'N/A'}\nNotes: ${order.notes || '-'}\nReceivedAt: ${new Date().toISOString()}`
         const payload = JSON.stringify({ chat_id: TG_CHAT, text: message })
         const options = {
           hostname: 'api.telegram.org',

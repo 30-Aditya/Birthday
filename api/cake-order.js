@@ -20,8 +20,9 @@ export default async function handler(req, res) {
   const token = process.env.TELEGRAM_BOT_TOKEN
   const chat = process.env.TELEGRAM_CHAT_ID
 
-  // Build message
-  const message = `Your birthday surprise is being prepared ❤️\nI know which cake she selected: ${order.flavor || 'N/A'}\nName: ${order.name || 'N/A'}\nPhone: ${order.phone || 'N/A'}\nNotes: ${order.notes || '-'}\nReceivedAt: ${new Date().toISOString()}`
+  // Build message (include delivery time if provided; default to 5pm)
+  const deliveryTime = order.time || '5pm'
+  const message = `Your birthday surprise is being prepared ❤️\nI know which cake she selected: ${order.flavor || 'N/A'}\nDelivery Time: ${deliveryTime}\nName: ${order.name || 'N/A'}\nPhone: ${order.phone || 'N/A'}\nNotes: ${order.notes || '-'}\nReceivedAt: ${new Date().toISOString()}`
 
   if (!token || !chat) {
     // If no token/chat configured, return success but note unconfigured
