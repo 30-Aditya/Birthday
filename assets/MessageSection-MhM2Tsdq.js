@@ -1,4 +1,4 @@
-import{a as e,o as t,s as n,t as r}from"./index-DOtkeYmR.js";var i=n(t()),a=r(),o=`Dear Khushi,
+import{a as e,o as t,s as n,t as r}from"./index-C2SbmDON.js";var i=n(t()),a=r(),o=`Dear Khushi,
 
 Happy Birthday!
 
