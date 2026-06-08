@@ -151,6 +151,19 @@ git push -u origin main
 - Set Framework Preset to `Vite` (Vercel usually detects it). Build command: `npm run build`. Output directory: `dist`.
 - Deploy — Vercel will build and host your site.
 
+Serverless API (Vercel)
+-----------------------
+This project now includes a serverless API endpoint at `/api/cake-order` that Vercel will host automatically when you deploy the repository. It sends the owner a Telegram message when an order is posted.
+
+To enable Telegram notifications in production:
+1. Deploy this repo to Vercel (see steps above).
+2. In your Vercel Project Settings → Environment Variables, add:
+	- `TELEGRAM_BOT_TOKEN` = your bot token
+	- `TELEGRAM_CHAT_ID` = the recipient's chat id
+3. Redeploy. The endpoint `/api/cake-order` will now forward orders as Telegram messages.
+
+Local testing: you can still run `node server/server.js` locally for development, but Vercel's `/api/cake-order` is recommended for production.
+
 Alternative: Use Vercel CLI
 
 ```bash
