@@ -89,4 +89,4 @@ for(const k of Object.keys(fileMap)){
 }
 export { allUploaded }
 
-export const piano = 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3'
+export const piano = `${baseUrl}assets/piano.webm`

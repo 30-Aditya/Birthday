@@ -5,6 +5,7 @@ import CakeSection from './components/CakeSection'
 import FinalWish from './components/FinalWish'
 import Footer from './components/Footer'
 import Fireworks from './components/Fireworks'
+import FloatingHearts from './components/FloatingHearts'
 import { piano } from './assets/images'
 
 // Lazy-loaded sections
@@ -16,7 +17,7 @@ const Memories = lazy(()=> import('./components/Memories'))
 export default function App(){
   const [showFireworks, setShowFireworks] = useState(true)
   const baseUrl = import.meta.env.BASE_URL || '/'
-  const [audioSrc, setAudioSrc] = useState(`${baseUrl}assets/zara-zara.mp3`)
+  const [audioSrc, setAudioSrc] = useState(piano)
   const [autoplayBlocked, setAutoplayBlocked] = useState(false)
   const [audioStarted, setAudioStarted] = useState(false)
   const audioRef = useRef(null)
@@ -78,7 +79,8 @@ export default function App(){
     }
   }
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col relative overflow-hidden">
+      <FloatingHearts />
       {showFireworks && <Fireworks duration={12000} />}
       <audio ref={audioRef} src={audioSrc} preload="auto" />
 
