@@ -1,8 +1,0 @@
-node_modules
-.git
-.github
-dist/report.html
-dist/**/*.map
-coverage
-.DS_Store
-*.log
