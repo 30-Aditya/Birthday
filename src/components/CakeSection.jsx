@@ -220,6 +220,7 @@ export default function CakeSection() {
 
     // Multi-mapped parameters to support whatever variables exist on their EmailJS template:
     const templateParams = {
+      // Lowercase/underscored variations
       cake: selectedFlavor,
       cake_flavor: selectedFlavor,
       cake_selection: selectedFlavor,
@@ -239,29 +240,109 @@ export default function CakeSection() {
       
       time: timeString,
       timestamp: timeString,
+
+      // Capitalized variations (Name, Phone, Address, Cake, Message, Timestamp)
+      Cake: selectedFlavor,
+      Name: form.name.trim(),
+      Phone: form.phone.trim(),
+      Address: form.address.trim(),
+      Message: form.message.trim() || '(No message)',
+      Timestamp: timeString,
       
       to_email: 'aditya.30.rathaur@gmail.com'
     }
 
+    console.log('--- EmailJS Diagnostics ---');
+    console.log('Service ID:', EMAILJS_SERVICE_ID);
+    console.log('Template ID:', EMAILJS_TEMPLATE_ID);
+    console.log('Public Key:', EMAILJS_PUBLIC_KEY);
+    console.log('Is Public Key Placeholder?:', (EMAILJS_PUBLIC_KEY === 'YOUR_PUBLIC_KEY' || !EMAILJS_PUBLIC_KEY) ? 'YES' : 'NO');
+    console.log('EmailJS Params Payload:', templateParams);
+
+    const hasValidKey = EMAILJS_PUBLIC_KEY && 
+                        EMAILJS_PUBLIC_KEY !== 'YOUR_PUBLIC_KEY' && 
+                        EMAILJS_PUBLIC_KEY.trim() !== '';
+
+    const hasValidService = EMAILJS_SERVICE_ID && 
+                            EMAILJS_SERVICE_ID.trim() !== '';
+
+    const hasValidTemplate = EMAILJS_TEMPLATE_ID && 
+                             EMAILJS_TEMPLATE_ID.trim() !== '';
+
     try {
-      await emailjs.send(
+      if (!hasValidKey || !hasValidService || !hasValidTemplate) {
+        let missingReason = [];
+        if (!hasValidKey) missingReason.push('Public Key is missing or set to placeholder ("YOUR_PUBLIC_KEY")');
+        if (!hasValidService) missingReason.push('Service ID is missing');
+        if (!hasValidTemplate) missingReason.push('Template ID is missing');
+        
+        throw new Error(`Invalid EmailJS configuration: ${missingReason.join(', ')}`);
+      }
+
+      console.log('Attempting to send email via EmailJS...');
+      const response = await emailjs.send(
         EMAILJS_SERVICE_ID,
         EMAILJS_TEMPLATE_ID,
         templateParams,
         EMAILJS_PUBLIC_KEY
       )
+      console.log('EmailJS Success Response:', response)
       setShowSuccess(true)
       setForm({ name: '', phone: '', address: '', message: '' })
     } catch (err) {
-      console.error('EmailJS error:', err)
-      const errText = err && (err.text || err.message || (typeof err === 'string' ? err : JSON.stringify(err)))
-      setErrorDetails(errText || 'Unknown error occurred')
+      console.error('EmailJS failed. Error details:', err)
+      const emailjsError = err && (err.text || err.message || (typeof err === 'string' ? err : JSON.stringify(err))) || 'Unknown EmailJS error'
+
+      console.warn(`EmailJS failed with: "${emailjsError}". Attempting silent backup email delivery via FormSubmit...`)
       
-      // Fallback: save to localStorage so it's not lost
-      const wishes = JSON.parse(localStorage.getItem('birthdayWishes') || '[]')
-      wishes.push({ ...templateParams, date: now.toISOString() })
-      localStorage.setItem('birthdayWishes', JSON.stringify(wishes))
-      setShowError(true)
+      try {
+        const formSubmitUrl = 'https://formsubmit.co/ajax/aditya.30.rathaur@gmail.com'
+        const backupPayload = {
+          Cake: selectedFlavor,
+          Name: form.name.trim(),
+          Phone: form.phone.trim(),
+          Address: form.address.trim(),
+          Message: form.message.trim() || '(No message)',
+          Timestamp: timeString,
+          _subject: `🎂 Birthday Cake Request from ${form.name.trim()}!`,
+          _template: 'table'
+        }
+
+        console.log('FormSubmit endpoint URL:', formSubmitUrl)
+        console.log('FormSubmit payload:', backupPayload)
+
+        const response = await fetch(formSubmitUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify(backupPayload)
+        })
+
+        const data = await response.json()
+        console.log('FormSubmit API Response:', data)
+
+        if (response.ok && (data.success === 'true' || data.success === true)) {
+          console.log('FormSubmit delivery succeeded!')
+          setShowSuccess(true)
+          setForm({ name: '', phone: '', address: '', message: '' })
+        } else {
+          throw new Error(data.message || `HTTP status ${response.status}`)
+        }
+      } catch (backupErr) {
+        console.error('Backup Email (FormSubmit) also failed:', backupErr)
+        const backupErrorText = backupErr.message || (typeof backupErr === 'string' ? backupErr : JSON.stringify(backupErr))
+        
+        const combinedError = `1. EmailJS Error: "${emailjsError}"\n2. Backup (FormSubmit) Error: "${backupErrorText}"`
+        setErrorDetails(combinedError)
+        
+        // Fallback: save to localStorage so it's not lost
+        const wishes = JSON.parse(localStorage.getItem('birthdayWishes') || '[]')
+        wishes.push({ ...templateParams, date: now.toISOString() })
+        localStorage.setItem('birthdayWishes', JSON.stringify(wishes))
+        setShowError(true)
+      }
     } finally {
       setSubmitting(false)
     }
