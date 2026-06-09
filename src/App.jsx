@@ -15,7 +15,7 @@ const VideoSection = lazy(()=> import('./components/VideoSection'))
 const Memories = lazy(()=> import('./components/Memories'))
 
 export default function App(){
-  const [showFireworks, setShowFireworks] = useState(true)
+  const [showFireworks, setShowFireworks] = useState(false)
   const baseUrl = import.meta.env.BASE_URL || '/'
   const [audioSrc, setAudioSrc] = useState(piano)
   const [autoplayBlocked, setAutoplayBlocked] = useState(false)
@@ -94,6 +94,7 @@ export default function App(){
                 await audioRef.current.play()
                 setAudioStarted(true)
                 setAutoplayBlocked(false)
+                setShowFireworks(true)
               }catch(e){ /* ignore */ }
             }}
           >

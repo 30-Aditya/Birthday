@@ -89,4 +89,4 @@ for(const k of Object.keys(fileMap)){
 }
 export { allUploaded }
 
-export const piano = `${baseUrl}assets/piano.webm`
+export const piano = `${baseUrl}assets/zara-zara.webm`
