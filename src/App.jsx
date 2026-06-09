@@ -1,111 +1,138 @@
-import React, { Suspense, lazy, useState, useEffect, useRef } from 'react'
+import React, { Suspense, lazy, useState, useRef, useEffect } from 'react'
 import Hero from './components/Hero'
 import Qualities from './components/Qualities'
 import CakeSection from './components/CakeSection'
 import FinalWish from './components/FinalWish'
 import Footer from './components/Footer'
 import Fireworks from './components/Fireworks'
-import FloatingHearts from './components/FloatingHearts'
-import { piano } from './assets/images'
+import BalloonBlast from './components/BalloonBlast'
 
-// Lazy-loaded sections
-const MessageSection = lazy(()=> import('./components/MessageSection'))
-const Gallery = lazy(()=> import('./components/Gallery'))
-const VideoSection = lazy(()=> import('./components/VideoSection'))
-const Memories = lazy(()=> import('./components/Memories'))
+const MessageSection = lazy(() => import('./components/MessageSection'))
+const Gallery = lazy(() => import('./components/Gallery'))
+const VideoSection = lazy(() => import('./components/VideoSection'))
+const Memories = lazy(() => import('./components/Memories'))
 
-export default function App(){
+export default function App() {
+  const [surprisePhase, setSurprisePhase] = useState('idle') // idle | balloons | fireworks | done
+  const [showGlowText, setShowGlowText] = useState(false)
   const [showFireworks, setShowFireworks] = useState(false)
-  const baseUrl = import.meta.env.BASE_URL || '/'
-  const [audioSrc, setAudioSrc] = useState(piano)
-  const [autoplayBlocked, setAutoplayBlocked] = useState(false)
-  const [audioStarted, setAudioStarted] = useState(false)
+  const [showBalloons, setShowBalloons] = useState(false)
   const audioRef = useRef(null)
 
-  useEffect(()=>{
-    // allow URL param to explicitly disable fireworks (useful for testing)
-    try{
-      const params = new URLSearchParams(window.location.search)
-      const fire = params.get('fireworks') || params.get('celebrate')
-      if(fire === '0' || fire === 'false') setShowFireworks(false)
-    }catch(e){ }
-  },[])
+  const baseUrl = import.meta.env.BASE_URL || '/'
+  const audioSrc = `${baseUrl}assets/zara-zara.webm`
 
-  useEffect(()=>{
-    const audio = audioRef.current
-    if(!audio) return
-    audio.loop = true
-    audio.preload = 'auto'
+  // ── SEQUENCE WHEN USER TAPS SURPRISE ──────────────────────────
+  function handleSurprise() {
+    if (surprisePhase !== 'idle') return
 
-    // fallback to remote piano sample if local Zara file missing
-    const onError = ()=>{ if(audioSrc !== piano) setAudioSrc(piano) }
-    audio.addEventListener('error', onError)
+    // Step 1: Balloons immediately
+    setSurprisePhase('balloons')
+    setShowBalloons(true)
 
-    // Try autoplay once on load
-    const tryPlay = async ()=>{
-      try{
-        await audio.play()
-        setAutoplayBlocked(false)
-        setAudioStarted(true)
-      }catch(err){
-        if(!audioStarted){
-          setAutoplayBlocked(true)
-        }
-      }
-    }
-    
-    if (audioStarted || !autoplayBlocked) {
-      tryPlay()
+    // Step 2: Start music immediately
+    if (audioRef.current) {
+      audioRef.current.currentTime = 0
+      audioRef.current.volume = 0.85
+      audioRef.current.play().catch(() => {})
     }
 
-    return ()=>{
-      audio.removeEventListener('error', onError)
-    }
-  },[audioSrc])
+    // Step 3: Fireworks after 1.2s (after balloons start)
+    setTimeout(() => {
+      setShowFireworks(true)
+      setShowGlowText(true)
+    }, 1200)
 
-  const togglePlay = () => {
-    const audio = audioRef.current
-    if (!audio) return
-    if (audioStarted) {
-      audio.pause()
-      setAudioStarted(false)
-    } else {
-      audio.play().then(() => {
-        setAudioStarted(true)
-        setAutoplayBlocked(false)
-      }).catch(err => {
-        console.error("Failed to play audio:", err)
-      })
-    }
+    // Step 6: Stop fireworks after 15s from button click
+    setTimeout(() => {
+      setShowFireworks(false)
+      setShowGlowText(false)
+      setShowBalloons(false)
+      setSurprisePhase('done')
+    }, 15000)
   }
-  return (
-    <div className="min-h-screen flex flex-col relative overflow-hidden">
-      <FloatingHearts />
-      {showFireworks && <Fireworks duration={12000} />}
-      <audio ref={audioRef} src={audioSrc} preload="auto" />
 
-      {autoplayBlocked && !audioStarted && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-auto">
-          <button
-            aria-label="Start surprise"
-            className="bg-white/90 backdrop-blur-sm px-6 py-3 rounded-full shadow-lg text-lg md:text-xl"
-            onClick={async ()=>{
-              try{
-                await audioRef.current.play()
-                setAudioStarted(true)
-                setAutoplayBlocked(false)
-                setShowFireworks(true)
-              }catch(e){ /* ignore */ }
+  return (
+    <div className="app-root">
+      {/* Inject balloon keyframes */}
+      <style>{`
+        @keyframes balloonRise {
+          0%   { transform: translateY(0) scale(1) rotate(0deg); opacity: 1; }
+          70%  { transform: translateY(-70vh) scale(1.15) rotate(8deg); opacity: 1; }
+          85%  { transform: translateY(-80vh) scale(1.35) rotate(-5deg); opacity: 0.9; }
+          100% { transform: translateY(-100vh) scale(0.2) rotate(15deg); opacity: 0; }
+        }
+        @keyframes sparkFly {
+          0%   { transform: translate(0,0) scale(1); opacity: 1; }
+          100% { transform: translate(var(--sx), var(--sy)) scale(0); opacity: 0; }
+        }
+        @keyframes glowPulse {
+          0%, 100% { text-shadow: 0 0 20px #ff69b4, 0 0 40px #ff69b4, 0 0 80px #ff69b4; }
+          50%       { text-shadow: 0 0 40px #ff1493, 0 0 80px #ff1493, 0 0 120px #ff1493, 0 0 200px #ff69b4; }
+        }
+        @keyframes glowTextFadeIn {
+          0%   { opacity: 0; transform: translateY(30px) scale(0.85); }
+          100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes float {
+          0%, 100% { transform: translateY(0px) rotate(-1deg); }
+          50%       { transform: translateY(-12px) rotate(1deg); }
+        }
+      `}</style>
+
+      {/* Background floating hearts (always present but subtle) */}
+      <div className="floating-hearts-bg" aria-hidden="true">
+        {Array.from({ length: 12 }).map((_, i) => (
+          <span
+            key={i}
+            className="bg-heart"
+            style={{
+              left: `${(i * 8.3 + Math.random() * 5)}%`,
+              animationDelay: `${i * 0.7}s`,
+              fontSize: `${Math.random() * 14 + 10}px`,
+              animationDuration: `${Math.random() * 4 + 6}s`
             }}
+          >💕</span>
+        ))}
+      </div>
+
+      {/* Balloon blast */}
+      {showBalloons && <BalloonBlast />}
+
+      {/* Fireworks */}
+      {showFireworks && <Fireworks duration={13800} />}
+
+      {/* Glowing Birthday Text overlay */}
+      {showGlowText && (
+        <div className="glow-text-overlay" aria-live="assertive">
+          <div className="glow-text-inner">
+            <div className="glow-title">🎂 Happy Birthday Khushi ❤️</div>
+            <div className="glow-sub">Wishing you all the love in the world ✨</div>
+          </div>
+        </div>
+      )}
+
+      {/* Hidden audio — NO autoplay */}
+      <audio ref={audioRef} src={audioSrc} preload="auto" loop />
+
+      {/* TAP TO SURPRISE button — only show when idle */}
+      {surprisePhase === 'idle' && (
+        <div className="surprise-btn-wrapper">
+          <button
+            id="tap-to-surprise"
+            className="surprise-btn"
+            onClick={handleSurprise}
+            aria-label="Tap To Surprise"
           >
-            Tap to Start Surprise 🎉
+            🎉 Tap To Surprise
           </button>
         </div>
       )}
-      <main className="flex-1">
+
+      <main className="main-content">
         <Hero />
-        <div className="max-w-5xl mx-auto px-6 py-12">
-          <Suspense fallback={<div className="text-center py-12">Loading...</div>}>
+        <div className="sections-container">
+          <Suspense fallback={<div className="loading-placeholder">Loading...</div>}>
             <MessageSection />
             <Gallery />
             <Qualities />
@@ -116,7 +143,8 @@ export default function App(){
           </Suspense>
         </div>
       </main>
-      <Footer audioStarted={audioStarted} togglePlay={togglePlay} />
+
+      <Footer audioRef={audioRef} />
     </div>
   )
 }
