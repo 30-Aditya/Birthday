@@ -1,19 +1,6 @@
-import React, { useState } from 'react'
+import React from 'react'
 
-export default function Footer({ audioRef }) {
-  const [playing, setPlaying] = useState(false)
-
-  function togglePlay() {
-    const audio = audioRef?.current
-    if (!audio) return
-    if (audio.paused) {
-      audio.play().then(() => setPlaying(true)).catch(() => {})
-    } else {
-      audio.pause()
-      setPlaying(false)
-    }
-  }
-
+export default function Footer({ isMusicPlaying, toggleMusic }) {
   return (
     <footer className="site-footer">
       <div className="footer-inner">
@@ -22,11 +9,11 @@ export default function Footer({ audioRef }) {
         </div>
         <button
           className="music-toggle-btn"
-          onClick={togglePlay}
-          aria-label={playing ? 'Pause music' : 'Play music'}
-          title={playing ? 'Pause Zara Zara' : 'Play Zara Zara'}
+          onClick={toggleMusic}
+          aria-label={isMusicPlaying ? 'Pause music' : 'Play music'}
+          title={isMusicPlaying ? 'Pause Zara Zara' : 'Play Zara Zara'}
         >
-          {playing ? '⏸ Pause Music' : '🎵 Play Music'}
+          {isMusicPlaying ? '⏸ Pause Music' : '🎵 Play Music'}
         </button>
       </div>
     </footer>

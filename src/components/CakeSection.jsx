@@ -3,15 +3,11 @@ import { motion, AnimatePresence } from 'framer-motion'
 import emailjs from '@emailjs/browser'
 
 // ─── EmailJS Configuration ─────────────────────────────────────
-// You MUST create a free account at https://www.emailjs.com and fill these in:
-//   1. Add an Email Service (Gmail) → copy the Service ID
-//   2. Create an Email Template with variables: {{cake}}, {{from_name}}, {{message}}, {{time}}
-//      Set the template "To Email" to: aditya.30.rathaur@gmail.com
-//      Set the Subject to: 🎂 New Birthday Cake Request
-//   3. Copy your Public Key from Account → General
-const EMAILJS_SERVICE_ID  = 'service_birthday'   // ← replace with your service ID
-const EMAILJS_TEMPLATE_ID = 'template_birthday'  // ← replace with your template ID
-const EMAILJS_PUBLIC_KEY  = 'YOUR_PUBLIC_KEY'     // ← replace with your public key
+// You can configure these environment variables in your build settings or local .env file.
+// Or change these fallbacks if you want to hardcode them directly.
+const EMAILJS_SERVICE_ID  = import.meta.env.VITE_EMAILJS_SERVICE_ID || 'service_birthday'
+const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID || 'template_birthday'
+const EMAILJS_PUBLIC_KEY  = import.meta.env.VITE_EMAILJS_PUBLIC_KEY || 'YOUR_PUBLIC_KEY'
 
 // ─── Cake Data with High-Quality Images ────────────────────────
 const CAKES = [
@@ -43,13 +39,13 @@ const CAKES = [
     tag: 'Romantic'
   },
   {
-    flavor: 'Butterscotch',
-    emoji: '🧈',
-    description: 'Soft sponge with butterscotch sauce & caramel drizzle',
-    gradient: 'linear-gradient(135deg, #8B6914, #d4a017)',
-    image: 'https://images.unsplash.com/photo-1571115177098-24ec42ed204d?w=600&q=85&fit=crop',
-    fallback: 'https://images.unsplash.com/photo-1562440499-64c9a111f713?w=600&q=85&fit=crop',
-    tag: 'Sweet'
+    flavor: 'Strawberry',
+    emoji: '🍓',
+    description: 'Fluffy vanilla cake with strawberry jam & fresh strawberries',
+    gradient: 'linear-gradient(135deg, #c41e3a, #ff6b8a)',
+    image: 'https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=600&q=85&fit=crop',
+    fallback: 'https://images.unsplash.com/photo-1488477181946-6428a0291777?w=600&q=85&fit=crop',
+    tag: 'Fresh'
   },
   {
     flavor: 'Pineapple',
@@ -61,13 +57,13 @@ const CAKES = [
     tag: 'Tropical'
   },
   {
-    flavor: 'Strawberry',
-    emoji: '🍓',
-    description: 'Fluffy vanilla cake with strawberry jam & fresh strawberries',
-    gradient: 'linear-gradient(135deg, #c41e3a, #ff6b8a)',
-    image: 'https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=600&q=85&fit=crop',
-    fallback: 'https://images.unsplash.com/photo-1488477181946-6428a0291777?w=600&q=85&fit=crop',
-    tag: 'Fresh'
+    flavor: 'Butterscotch',
+    emoji: '🧈',
+    description: 'Soft sponge with butterscotch sauce & caramel drizzle',
+    gradient: 'linear-gradient(135deg, #8B6914, #d4a017)',
+    image: 'https://images.unsplash.com/photo-1571115177098-24ec42ed204d?w=600&q=85&fit=crop',
+    fallback: 'https://images.unsplash.com/photo-1562440499-64c9a111f713?w=600&q=85&fit=crop',
+    tag: 'Sweet'
   }
 ]
 
@@ -126,50 +122,6 @@ function CakeCard({ cake, isSelected, onClick }) {
 function SuccessPopup({ show, onClose }) {
   useEffect(() => {
     if (show) {
-      const timer = setTimeout(onClose, 4000)
-      return () => clearTimeout(timer)
-    }
-  }, [show, onClose])
-
-  return (
-    <AnimatePresence>
-      {show && (
-        <motion.div
-          className="popup-overlay"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          onClick={onClose}
-        >
-          <motion.div
-            className="popup-card"
-            initial={{ scale: 0.5, opacity: 0, y: 40 }}
-            animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ scale: 0.8, opacity: 0, y: -20 }}
-            transition={{ type: 'spring', stiffness: 260, damping: 20 }}
-            onClick={e => e.stopPropagation()}
-          >
-            <div className="popup-emoji">🎉</div>
-            <h3 className="popup-title">Your Birthday Wish Has Been Sent!</h3>
-            <p className="popup-subtitle">💖 Khushi will love it!</p>
-            <div className="popup-sparkles">✨ 🎂 ✨</div>
-            <motion.div
-              className="popup-progress"
-              initial={{ scaleX: 1 }}
-              animate={{ scaleX: 0 }}
-              transition={{ duration: 4, ease: 'linear' }}
-            />
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  )
-}
-
-// ─── Error Popup ───────────────────────────────────────────────
-function ErrorPopup({ show, onClose }) {
-  useEffect(() => {
-    if (show) {
       const timer = setTimeout(onClose, 5000)
       return () => clearTimeout(timer)
     }
@@ -178,13 +130,46 @@ function ErrorPopup({ show, onClose }) {
   return (
     <AnimatePresence>
       {show && (
-        <motion.div
-          className="popup-overlay"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          onClick={onClose}
-        >
+        <div className="popup-overlay" onClick={onClose}>
+          <motion.div
+            className="popup-card"
+            initial={{ scale: 0.5, opacity: 0, y: 40 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.8, opacity: 0, y: -20 }}
+            transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+            onClick={e => e.stopPropagation()}
+            role="alert"
+          >
+            <div className="popup-emoji">🎉</div>
+            <h3 className="popup-title">🎉 Cake Request Sent Successfully! 💖</h3>
+            <p className="popup-subtitle">Khushi will receive your sweet surprise!</p>
+            <div className="popup-sparkles">✨ 🎂 ✨</div>
+            <motion.div
+              className="popup-progress"
+              initial={{ scaleX: 1 }}
+              animate={{ scaleX: 0 }}
+              transition={{ duration: 5, ease: 'linear' }}
+            />
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
+  )
+}
+
+// ─── Error Popup ───────────────────────────────────────────────
+function ErrorPopup({ show, onClose, errorDetails }) {
+  useEffect(() => {
+    if (show) {
+      const timer = setTimeout(onClose, 7500)
+      return () => clearTimeout(timer)
+    }
+  }, [show, onClose])
+
+  return (
+    <AnimatePresence>
+      {show && (
+        <div className="popup-overlay" onClick={onClose}>
           <motion.div
             className="popup-card popup-card--error"
             initial={{ scale: 0.5, opacity: 0 }}
@@ -192,12 +177,18 @@ function ErrorPopup({ show, onClose }) {
             exit={{ scale: 0.8, opacity: 0 }}
             transition={{ type: 'spring', stiffness: 260, damping: 20 }}
             onClick={e => e.stopPropagation()}
+            role="alert"
           >
             <div className="popup-emoji">❌</div>
-            <h3 className="popup-title" style={{ color: '#8B0000' }}>Something went wrong.</h3>
-            <p className="popup-subtitle">Please try again.</p>
+            <h3 className="popup-title" style={{ color: '#8B0000' }}>Request Failed</h3>
+            <p className="popup-subtitle" style={{ fontSize: '0.95rem', color: '#6a1130', wordBreak: 'break-word', marginTop: '0.5rem', lineHeight: 1.4 }}>
+              {errorDetails || 'Something went wrong. Please check your connection.'}
+            </p>
+            <p style={{ fontSize: '0.75rem', color: '#8a2c52', marginTop: '0.8rem', opacity: 0.8 }}>
+              (Your request has been saved locally in this browser so it won't be lost)
+            </p>
           </motion.div>
-        </motion.div>
+        </div>
       )}
     </AnimatePresence>
   )
@@ -205,17 +196,18 @@ function ErrorPopup({ show, onClose }) {
 
 // ─── Main CakeSection ──────────────────────────────────────────
 export default function CakeSection() {
-  const [selectedFlavor, setSelectedFlavor] = useState('Red Velvet')
-  const [form, setForm] = useState({ name: '', message: '' })
+  const [selectedFlavor, setSelectedFlavor] = useState('Chocolate')
+  const [form, setForm] = useState({ name: '', phone: '', address: '', message: '' })
   const [submitting, setSubmitting] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
   const [showError, setShowError] = useState(false)
+  const [errorDetails, setErrorDetails] = useState('')
 
   const selectedCake = CAKES.find(c => c.flavor === selectedFlavor) || CAKES[0]
 
   async function handleSubmit(e) {
     e.preventDefault()
-    if (!form.name.trim()) return
+    if (!form.name.trim() || !form.phone.trim() || !form.address.trim()) return
 
     setSubmitting(true)
 
@@ -226,11 +218,28 @@ export default function CakeSection() {
       timeZone: 'Asia/Kolkata'
     })
 
+    // Multi-mapped parameters to support whatever variables exist on their EmailJS template:
     const templateParams = {
       cake: selectedFlavor,
+      cake_flavor: selectedFlavor,
+      cake_selection: selectedFlavor,
+      
+      name: form.name.trim(),
       from_name: form.name.trim(),
+      fullname: form.name.trim(),
+      
+      phone: form.phone.trim(),
+      phone_number: form.phone.trim(),
+      
+      address: form.address.trim(),
+      delivery_address: form.address.trim(),
+      
       message: form.message.trim() || '(No message)',
+      birthday_message: form.message.trim() || '(No message)',
+      
       time: timeString,
+      timestamp: timeString,
+      
       to_email: 'aditya.30.rathaur@gmail.com'
     }
 
@@ -242,9 +251,12 @@ export default function CakeSection() {
         EMAILJS_PUBLIC_KEY
       )
       setShowSuccess(true)
-      setForm({ name: '', message: '' })
+      setForm({ name: '', phone: '', address: '', message: '' })
     } catch (err) {
       console.error('EmailJS error:', err)
+      const errText = err && (err.text || err.message || (typeof err === 'string' ? err : JSON.stringify(err)))
+      setErrorDetails(errText || 'Unknown error occurred')
+      
       // Fallback: save to localStorage so it's not lost
       const wishes = JSON.parse(localStorage.getItem('birthdayWishes') || '[]')
       wishes.push({ ...templateParams, date: now.toISOString() })
@@ -258,11 +270,15 @@ export default function CakeSection() {
   return (
     <section className="cake-section">
       <SuccessPopup show={showSuccess} onClose={() => setShowSuccess(false)} />
-      <ErrorPopup show={showError} onClose={() => setShowError(false)} />
+      <ErrorPopup show={showError} onClose={() => setShowError(false)} errorDetails={errorDetails} />
 
-      <div className="section-header">
-        <h3 className="section-title">🎂 Pick Your Birthday Cake</h3>
-        <p className="section-subtitle">Choose the perfect cake for Khushi's special day</p>
+      <div className="section-header" style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
+        <h3 className="section-title" style={{ fontFamily: "'Playfair Display', serif", fontSize: '2rem', color: '#501033' }}>
+          🎂 Pick Your Birthday Cake
+        </h3>
+        <p className="section-subtitle" style={{ color: '#6a1130', opacity: 0.8 }}>
+          Choose the perfect cake for Khushi's special day
+        </p>
       </div>
 
       {/* Cake Grid */}
@@ -283,6 +299,7 @@ export default function CakeSection() {
           key={selectedFlavor}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
           className="cake-order-card"
         >
           <div className="cake-order-preview">
@@ -292,7 +309,7 @@ export default function CakeSection() {
               className="cake-order-img"
               onError={e => { e.currentTarget.src = selectedCake.fallback }}
             />
-            <div className="cake-order-info">
+            <div className="cake-order-info" style={{ textAlign: 'center' }}>
               <div style={{ fontSize: '2.5rem' }}>{selectedCake.emoji}</div>
               <h4 style={{ margin: '0.5rem 0', color: '#601035', fontFamily: "'Playfair Display', serif", fontSize: '1.4rem' }}>
                 {selectedCake.flavor} Cake
@@ -301,18 +318,45 @@ export default function CakeSection() {
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="cake-form" aria-label="Birthday wish form">
-            <h4 className="cake-form-title">🎂 Pick Your Birthday Cake</h4>
+          <form onSubmit={handleSubmit} className="cake-form" aria-label="Birthday cake form">
+            <h4 className="cake-form-title" style={{ textAlign: 'center', marginBottom: '1rem', fontSize: '1.2rem', fontWeight: 'bold', color: '#601035' }}>
+              🎂 Cake Request Details
+            </h4>
 
             <div className="form-group">
-              <label className="form-label">Your Name</label>
+              <label className="form-label">Full Name</label>
               <input
                 value={form.name}
                 onChange={e => setForm({ ...form, name: e.target.value })}
                 className="form-input"
-                placeholder="Enter your name"
+                placeholder="Enter your full name"
                 required
-                aria-label="Your name"
+                aria-label="Full Name"
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Phone Number</label>
+              <input
+                type="tel"
+                value={form.phone}
+                onChange={e => setForm({ ...form, phone: e.target.value })}
+                className="form-input"
+                placeholder="Enter phone number"
+                required
+                aria-label="Phone Number"
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Delivery Address</label>
+              <input
+                value={form.address}
+                onChange={e => setForm({ ...form, address: e.target.value })}
+                className="form-input"
+                placeholder="Enter delivery address"
+                required
+                aria-label="Delivery Address"
               />
             </div>
 
@@ -324,6 +368,7 @@ export default function CakeSection() {
                 className="form-input form-textarea"
                 placeholder="Write a heartfelt birthday message for Khushi..."
                 rows={4}
+                required
                 aria-label="Birthday message"
               />
             </div>
@@ -334,7 +379,7 @@ export default function CakeSection() {
               className="cake-submit-btn"
               style={{ background: selectedCake.gradient }}
             >
-              {submitting ? '💌 Sending...' : '🎁 Send My Birthday Wish'}
+              {submitting ? '💌 Sending...' : '🎁 Send Cake Request'}
             </button>
           </form>
         </motion.div>

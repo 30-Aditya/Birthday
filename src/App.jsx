@@ -17,7 +17,11 @@ export default function App() {
   const [showGlowText, setShowGlowText] = useState(false)
   const [showFireworks, setShowFireworks] = useState(false)
   const [showBalloons, setShowBalloons] = useState(false)
+  const [isMusicPlaying, setIsMusicPlaying] = useState(false)
+  const [musicWasPlayingBeforeVideo, setMusicWasPlayingBeforeVideo] = useState(false)
+  
   const audioRef = useRef(null)
+  const videoElementRef = useRef(null)
 
   const baseUrl = import.meta.env.BASE_URL || '/'
   const audioSrc = `${baseUrl}assets/zara-zara.webm`
@@ -26,30 +30,66 @@ export default function App() {
   function handleSurprise() {
     if (surprisePhase !== 'idle') return
 
-    // Step 1: Balloons immediately
+    // Start balloons, fireworks, and glow text immediately
     setSurprisePhase('balloons')
     setShowBalloons(true)
+    setShowFireworks(true)
+    setShowGlowText(true)
 
-    // Step 2: Start music immediately
+    // Start music immediately
     if (audioRef.current) {
       audioRef.current.currentTime = 0
       audioRef.current.volume = 0.85
-      audioRef.current.play().catch(() => {})
+      audioRef.current.play().then(() => {
+        setIsMusicPlaying(true)
+      }).catch(() => {})
     }
 
-    // Step 3: Fireworks after 1.2s (after balloons start)
-    setTimeout(() => {
-      setShowFireworks(true)
-      setShowGlowText(true)
-    }, 1200)
-
-    // Step 6: Stop fireworks after 15s from button click
+    // Stop effects after 15s from button click
     setTimeout(() => {
       setShowFireworks(false)
       setShowGlowText(false)
       setShowBalloons(false)
       setSurprisePhase('done')
     }, 15000)
+  }
+
+  // ── VIDEO PLAY/PAUSE INTERCEPTORS FOR AUDIO PRIORITY ──────────
+  const handleVideoPlay = (videoEl) => {
+    videoElementRef.current = videoEl
+    if (audioRef.current && !audioRef.current.paused) {
+      setMusicWasPlayingBeforeVideo(true)
+      audioRef.current.pause()
+      setIsMusicPlaying(false)
+    } else {
+      setMusicWasPlayingBeforeVideo(false)
+    }
+  }
+
+  const handleVideoPause = () => {
+    if (musicWasPlayingBeforeVideo) {
+      if (audioRef.current) {
+        audioRef.current.play().then(() => {
+          setIsMusicPlaying(true)
+        }).catch(() => {})
+      }
+      setMusicWasPlayingBeforeVideo(false)
+    }
+  }
+
+  const toggleMusic = () => {
+    const audio = audioRef?.current
+    if (!audio) return
+    if (audio.paused) {
+      // Never allow video audio and background music to play together
+      if (videoElementRef.current && !videoElementRef.current.paused) {
+        videoElementRef.current.pause()
+      }
+      audio.play().then(() => setIsMusicPlaying(true)).catch(() => {})
+    } else {
+      audio.pause()
+      setIsMusicPlaying(false)
+    }
   }
 
   return (
@@ -136,7 +176,7 @@ export default function App() {
             <MessageSection />
             <Gallery />
             <Qualities />
-            <VideoSection />
+            <VideoSection videoRef={videoElementRef} onVideoPlay={handleVideoPlay} onVideoPause={handleVideoPause} />
             <CakeSection />
             <Memories />
             <FinalWish />
@@ -144,7 +184,7 @@ export default function App() {
         </div>
       </main>
 
-      <Footer audioRef={audioRef} />
+      <Footer isMusicPlaying={isMusicPlaying} toggleMusic={toggleMusic} />
     </div>
   )
 }
