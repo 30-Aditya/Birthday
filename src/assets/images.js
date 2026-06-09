@@ -2,7 +2,8 @@
 // choose uploaded Image1..Image5 by filename heuristics, then map
 // them to the site's image slots per the project mapping rules.
 // Vite: use import.meta.glob with `{ eager: true }` — `globEager` is not supported in some setups.
-const modules = import.meta.glob('./*.{jpeg,jpg,png,mp4}', { eager: true })
+// Include more formats (svg, webp, gif) and be forgiving about casing.
+const modules = import.meta.glob('./*.{jpeg,jpg,png,mp4,svg,webp,gif}', { eager: true })
 const fileMap = {}
 for(const p in modules){
   const m = modules[p]
@@ -20,11 +21,11 @@ function findContains(substr){
 
 // Candidate uploaded filenames per original brief (try exact matches first)
 const IMAGE_CANDIDATES = {
-  image1: ['KP_','KP','kp'],
-  image2: ['WhatsApp Image 2026-06-08 at 14.55.08','14.55.08'],
-  image3: ['94510d64','14.55.09','16.23','16.25','whatsapp 94510d64'],
-  image4: ['560476b0','560476'],
-  image5: ['fc9ad297','fc9ad']
+  image1: ['KP_❤️', 'KP_', 'KP', 'kp'],
+  image2: ['14.55.08', 'WhatsApp Image 2026-06-08 at 14.55.08'],
+  image3: ['14.55.09', '94510d64', 'whatsapp 94510d64'],
+  image4: ['16.23', '560476b0', '560476'],
+  image5: ['16.25', 'fc9ad297', 'fc9ad']
 }
 
 // Resolve a candidate list to an actual file URL, with fallbacks by substring.
@@ -35,19 +36,24 @@ function resolveCandidate(list, substrFallback){
 }
 
 // Determine Image1..Image5 (uploaded)
-const uploadedImage1 = resolveCandidate(IMAGE_CANDIDATES.image1, 'kp')
-const uploadedImage2 = resolveCandidate(IMAGE_CANDIDATES.image2, '14.55.08') || findContains('14.55.08')
-const uploadedImage3 = resolveCandidate(IMAGE_CANDIDATES.image3, '94510d64') || findContains('14.55.09') || findContains('16.23') || findContains('16.25')
-const uploadedImage4 = resolveCandidate(IMAGE_CANDIDATES.image4, '560476b0') || findContains('560476b0')
-const uploadedImage5 = resolveCandidate(IMAGE_CANDIDATES.image5, 'fc9ad297') || findContains('fc9ad297')
+const uploadedImage1 = resolveCandidate(IMAGE_CANDIDATES.image1, 'kp_') || findContains('kp')
+const uploadedImage2 = resolveCandidate(IMAGE_CANDIDATES.image2, '14.55.08')
+const uploadedImage3 = resolveCandidate(IMAGE_CANDIDATES.image3, '14.55.09')
+const uploadedImage4 = resolveCandidate(IMAGE_CANDIDATES.image4, '16.23')
+const uploadedImage5 = resolveCandidate(IMAGE_CANDIDATES.image5, '16.25') || findContains('KP.')
 
-// Find any mp4 in the folder for special video
+// Find any mp4 in the folder for special video (case-insensitive)
 let specialVideo = null
 for(const k of Object.keys(fileMap)){ if(k.toLowerCase().endsWith('.mp4')){ specialVideo = fileMap[k]; break } }
 
 // Public fallback assets (existing SVGs in public/assets)
+const baseUrl = import.meta.env.BASE_URL || '/'
 const publicFallbacks = {
-  pub1: '/assets/khushi1.svg', pub2: '/assets/khushi2.svg', pub3: '/assets/khushi3.svg', pub4: '/assets/khushi4.svg', pub5: '/assets/khushi5.svg'
+  pub1: `${baseUrl}assets/khushi1.svg`,
+  pub2: `${baseUrl}assets/khushi2.svg`,
+  pub3: `${baseUrl}assets/khushi3.svg`,
+  pub4: `${baseUrl}assets/khushi4.svg`,
+  pub5: `${baseUrl}assets/khushi5.svg`
 }
 
 // Map site image slots per mapping rule in the brief:

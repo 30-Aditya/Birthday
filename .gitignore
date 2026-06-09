@@ -4,5 +4,6 @@ dist/
 .env.local
 .DS_Store
 server/data/
+data/
 /.vite
 *.log

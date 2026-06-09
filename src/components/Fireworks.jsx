@@ -1,6 +1,6 @@
 import React, {useEffect, useRef} from 'react'
 
-export default function Fireworks({duration=7000}){
+export default function Fireworks({duration=12000}){
   const ref = useRef(null)
 
   useEffect(()=>{

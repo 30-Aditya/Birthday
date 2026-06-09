@@ -14,7 +14,8 @@ export default function CakeSection(){
     setSubmitting(true)
     setStatus('')
     try{
-      const res = await fetch('/api/cake-order', {
+      const apiUrl = import.meta.env.VITE_API_URL || '/api/cake-order'
+      const res = await fetch(apiUrl, {
         method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify(form)
       })
       if(res.ok){
